@@ -1,0 +1,11 @@
+Flowroute -> DID -> Purchase 
+Flowroute -> Opt Message in/out
+Flowroute -> Choose DID Action -> Change Alias
+3CX - SIP Trunks  -> Flowroute -> DID -> Add -> Ok
+3CX - User -> Check Extention -> Add
+3CX - User - Add -> if SDR -> Ext  >= 600 -> Fill out form 
+3CX - User - Add -> outbound caller = Flowroute DID
+3CX - User - Add -> Add DID (at the bottom) -> Choose Recent #
+3CX - User - VoiceMail -> Email Option -> Send Vmail as Attachment
+3CX - Advance -> Groups -> SDR to SDRs
+3CX - User - Click on user just got created -> Send Welcome Email
