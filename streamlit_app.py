@@ -8,6 +8,19 @@ UPLOAD_DIRECTORY = "uploads"
 GUIDE_DIRECTORY = "guides"
 
 
+class SessionState(object):
+    def __init__(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+
+def get_session():
+    return st.session_state
+
+
+session_state = SessionState(selected_guide=None, selected_page_number=None)
+
+
 def save_guide_page(guide_name, page_content):
     guide_directory = os.path.join(GUIDE_DIRECTORY, guide_name)
     os.makedirs(guide_directory, exist_ok=True)
@@ -25,7 +38,7 @@ def display_guide(guide_name, page_number):
         st.error(f"No guide found for '{guide_name}'")
         return
 
-    guide_pages = sorted([file for file in os.listdir(guide_directory) if file.endswith(GUIDE_FILE_EXTENSION[0])])
+    guide_pages = sorted([file for file in os.listdir(guide_directory) if file.endswith(GUIDE_FILE_EXTENSION)])
     if not guide_pages:
         st.warning(f"No pages found for '{guide_name}'")
         return
@@ -95,17 +108,26 @@ def main():
         st.warning("No guides found in the directory.")
     else:
         with st.sidebar:
-            selected_guide = st.selectbox("Select a guide:", [""] + guide_directories, key="selected_guide")
-            guide_directory = os.path.join(GUIDE_DIRECTORY, selected_guide)
-            guide_pages = sorted(
-                [file for file in os.listdir(guide_directory) if file.endswith(GUIDE_FILE_EXTENSION[0])])
+            selected_guide = st.selectbox("Select a guide:", [""] + guide_directories,
+                                          key="selected_guide",
+                                          index=guide_directories.index(session_state.selected_guide) + 1
+                                          if session_state.selected_guide in guide_directories else 0)
+            session_state.selected_guide = selected_guide
 
-            if not guide_pages:
-                st.warning(f"No pages found for '{selected_guide}'")
-            else:
+        guide_directory = os.path.join(GUIDE_DIRECTORY, selected_guide)
+        guide_pages = sorted([file for file in os.listdir(guide_directory) if file.endswith(GUIDE_FILE_EXTENSION)])
+
+        if not guide_pages:
+            st.warning(f"No pages found for '{selected_guide}'")
+        else:
+            with st.sidebar:
                 selected_page_number = st.selectbox("Select a page:", range(1, len(guide_pages) + 1),
-                                                    key="selected_page_number")
-                display_guide(selected_guide, selected_page_number)
+                                                    key="selected_page_number",
+                                                    index=guide_pages.index(session_state.selected_page_number)
+                                                    if session_state.selected_page_number in guide_pages else 0)
+                session_state.selected_page_number = selected_page_number
+
+            display_guide(selected_guide, selected_page_number)
 
     uploaded_file = st.file_uploader("Upload a guide file (CSV/PDF):", type=GUIDE_FILE_EXTENSION)
     if uploaded_file is not None:
@@ -130,6 +152,7 @@ def main():
             display_file_content(selected_file)
         else:
             st.warning("No guide files found.")
+
 
 if __name__ == "__main__":
     main()
